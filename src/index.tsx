@@ -17,6 +17,10 @@ const BackgroundLocation = NativeModules.BackgroundLocation
       }
     );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return BackgroundLocation.multiply(a, b);
+export function startBackgroundLocation(): Promise<string> {
+  return BackgroundLocation.startBackgroundService();
+}
+
+export function stopBackgroundLocation(): Promise<string> {
+  return BackgroundLocation.stopBackgroundService();
 }
