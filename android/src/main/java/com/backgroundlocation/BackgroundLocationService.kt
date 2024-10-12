@@ -24,6 +24,7 @@ class BackgroundLocationService : Service() {
     private lateinit var wakeLock: PowerManager.WakeLock
     private lateinit var configService: ConfigurationService
     private var distanceFilter: Float = 50f // default value for distance filter in meters
+    private var desiredAccuracy: String = "LOW" // default value for desired accuracy
 
     override fun onCreate() {
         super.onCreate()
@@ -41,7 +42,7 @@ class BackgroundLocationService : Service() {
             else -> 50f // Default value
         }
 
-    
+        desiredAccuracy = configMap["desiredAccuracy"] as? String ?: "LOW"
         
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BackgroundLocationService::WakeLock")
@@ -86,6 +87,12 @@ class BackgroundLocationService : Service() {
     private fun startLocationUpdates() {
         try {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                // Determine the provider based on desired accuracy
+                val provider = if (desiredAccuracy == "HIGH") {
+                    LocationManager.GPS_PROVIDER // Use GPS for high accuracy
+                } else {
+                    LocationManager.NETWORK_PROVIDER // Use Wi-Fi for low accuracy
+                }
                 mLocationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
                     LOCATION_UPDATE_INTERVAL.toLong(),

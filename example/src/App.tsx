@@ -11,7 +11,7 @@ export default function App() {
 
   useEffect(() => {
     saveConfiguration({
-      desiredAccuracy: 100,
+      desiredAccuracy: 'LOW',
       distanceFilter: 99,
       stopTimeout: 5,
       stopOnTerminate: true,
