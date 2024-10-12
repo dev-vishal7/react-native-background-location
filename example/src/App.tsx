@@ -12,11 +12,11 @@ export default function App() {
   useEffect(() => {
     saveConfiguration({
       desiredAccuracy: 100,
-      distanceFilter: 99999,
+      distanceFilter: 10,
       stopTimeout: 5,
       stopOnTerminate: true,
-      startOnBoot: false,
-      notificationTitle: 'App is running00000',
+      startOnBoot: true,
+      notificationTitle: 'App is running on background',
       notificationDescription: 'Tracking your location',
     })
       .then((res) => {
