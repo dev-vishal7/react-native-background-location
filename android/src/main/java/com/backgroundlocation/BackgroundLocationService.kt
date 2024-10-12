@@ -22,8 +22,8 @@ class BackgroundLocationService : Service() {
     private val CHANNEL_ID = "BackgroundLocationServiceChannel"
     private lateinit var mLocationManager: LocationManager
     private lateinit var wakeLock: PowerManager.WakeLock
-    private var lastLocation: Location? = null
     private lateinit var configService: ConfigurationService
+    private var distanceFilter: Float = 50f // default value for distance filter in meters
 
     override fun onCreate() {
         super.onCreate()
@@ -31,7 +31,18 @@ class BackgroundLocationService : Service() {
         mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         configService = ConfigurationService(this) 
         val config = configService.getConfig()
-        Log.d(TAG, "Configuration: $config")
+        
+        val configMap = config.toMap()
+        Log.d(TAG, "Config Map: $configMap")
+
+        distanceFilter = when (val value = configMap["distanceFilter"]) {
+            is Int -> value.toFloat() // Convert Int to Float
+            is Double -> value.toFloat() // Convert Double to Float
+            else -> 50f // Default value
+        }
+
+    
+        
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BackgroundLocationService::WakeLock")
         wakeLock.acquire(60 * 1000L)
@@ -73,13 +84,12 @@ class BackgroundLocationService : Service() {
     }
 
     private fun startLocationUpdates() {
-        Log.d(TAG, "Location updates started")
         try {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mLocationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
                     LOCATION_UPDATE_INTERVAL.toLong(),
-                    0f,
+                    distanceFilter, // The minimum distance (in meters) for location updates
                     mLocationListener
                 )
             } else {
