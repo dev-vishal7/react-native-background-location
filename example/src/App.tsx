@@ -3,12 +3,28 @@ import { StyleSheet, View, Text, Switch } from 'react-native';
 import {
   startBackgroundLocation,
   stopBackgroundLocation,
+  saveConfiguration,
 } from 'react-native-background-location';
 
 export default function App() {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
+    saveConfiguration({
+      desiredAccuracy: 100,
+      distanceFilter: 99999,
+      stopTimeout: 5,
+      stopOnTerminate: true,
+      startOnBoot: false,
+      notificationTitle: 'App is running00000',
+      notificationDescription: 'Tracking your location',
+    })
+      .then((res) => {
+        console.log('res----', res);
+      })
+      .catch((err) => {
+        console.log('err', err);
+      });
     if (enabled) {
       startBackgroundLocation().then((res) =>
         console.log('Background location started', res)

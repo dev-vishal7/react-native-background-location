@@ -11,6 +11,8 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import android.content.pm.PackageManager
+import com.facebook.react.bridge.ReadableMap 
+import com.backgroundlocation.ConfigurationService
 
 class BackgroundLocationService : Service() {
 
@@ -21,23 +23,27 @@ class BackgroundLocationService : Service() {
     private lateinit var mLocationManager: LocationManager
     private lateinit var wakeLock: PowerManager.WakeLock
     private var lastLocation: Location? = null
+    private lateinit var configService: ConfigurationService
 
     override fun onCreate() {
         super.onCreate()
 
         mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-
+        configService = ConfigurationService(this) 
+        val config = configService.getConfig()
+        Log.d(TAG, "Configuration: $config")
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BackgroundLocationService::WakeLock")
         wakeLock.acquire(60 * 1000L)
-    if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-        ContextCompat.checkSelfPermission(this, android.Manifest.permission.FOREGROUND_SERVICE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            
-        createNotification()
-        startLocationUpdates()
-    } else {
-        Log.e(TAG, "Required permissions not granted")
-    }
+        
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(this, android.Manifest.permission.FOREGROUND_SERVICE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                
+            createNotification()
+            startLocationUpdates()
+        } else {
+            Log.e(TAG, "Required permissions not granted")
+        }
     }
 
     private fun createNotification(): Notification {
@@ -62,7 +68,7 @@ class BackgroundLocationService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
 
-        startForeground(1, notification)
+        startForeground(NOTIFICATION_ID, notification)
         return notification
     }
 
@@ -114,7 +120,7 @@ class BackgroundLocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         mLocationManager.removeUpdates(mLocationListener)
-        if (wakeLock.isHeld) {
+        if (this::wakeLock.isInitialized && wakeLock.isHeld) {
             wakeLock.release()
         }
     }

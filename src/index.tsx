@@ -17,6 +17,13 @@ const BackgroundLocation = NativeModules.BackgroundLocation
       }
     );
 
+export function saveConfiguration(config: Object): Promise<string> {
+  return BackgroundLocation.saveConfiguration(config);
+}
+export function getConfiguration(config: Object): Promise<string> {
+  return BackgroundLocation.getConfiguration(config);
+}
+
 export function startBackgroundLocation(): Promise<string> {
   return BackgroundLocation.startBackgroundService();
 }
