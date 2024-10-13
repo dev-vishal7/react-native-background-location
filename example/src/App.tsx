@@ -39,7 +39,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <View style={{ alignItems: 'center' }}>
-        <Text>Click to enable Background Geolocation</Text>
+        <Text>Click to enable Background Geolocation Changed</Text>
         <Switch value={enabled} onValueChange={setEnabled} />
       </View>
     </View>
