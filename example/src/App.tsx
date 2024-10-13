@@ -10,16 +10,15 @@ export default function App() {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
-    // {
-    //   desiredAccuracy: 'HIGH',
-    //   distanceFilter: 99,
-    //   stopTimeout: 5,
-    //   stopOnTerminate: false,
-    //   startOnBoot: false,
-    //   notificationTitle: 'App is running on background',
-    //   notificationDescription: 'Tracking your location',
-    // }
-    saveConfiguration({})
+    saveConfiguration({
+      desiredAccuracy: 'HIGH',
+      distanceFilter: 99,
+      stopTimeout: 5,
+      stopOnTerminate: false,
+      startOnBoot: false,
+      notificationTitle: 'This is custom title',
+      notificationDescription: 'custom description for',
+    })
       .then((res) => {
         console.log('res----', res);
       })

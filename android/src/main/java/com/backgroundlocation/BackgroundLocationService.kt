@@ -23,8 +23,10 @@ class BackgroundLocationService : Service() {
     private lateinit var mLocationManager: LocationManager
     private lateinit var wakeLock: PowerManager.WakeLock
     private lateinit var configService: ConfigurationService
-    private var distanceFilter: Float = 50f // default value for distance filter in meters
-    private var desiredAccuracy: String = "LOW" // default value for desired accuracy
+    private var distanceFilter: Float = 50f 
+    private var desiredAccuracy: String = "LOW"
+    private var notificationTitle : String = "App is running" 
+    private var notificationDescription : String = "Tracking your location" 
 
     override fun onCreate() {
         super.onCreate()
@@ -43,12 +45,14 @@ class BackgroundLocationService : Service() {
         }
 
         desiredAccuracy = configMap["desiredAccuracy"] as? String ?: "LOW"
+        notificationTitle = configMap["notificationTitle"] as? String ?: ""
+        notificationDescription = configMap["notificationDescription"] as? String ?: ""
         
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BackgroundLocationService::WakeLock")
         wakeLock.acquire(60 * 1000L)
         
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(this, android.Manifest.permission.FOREGROUND_SERVICE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 
             createNotification()
@@ -73,8 +77,8 @@ class BackgroundLocationService : Service() {
         )
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("App is running")
-            .setContentText("Tap for more information or to stop the app.")
+            .setContentTitle(notificationTitle)
+            .setContentText(notificationDescription)
             .setContentIntent(pendingIntent)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setPriority(NotificationCompat.PRIORITY_LOW)
