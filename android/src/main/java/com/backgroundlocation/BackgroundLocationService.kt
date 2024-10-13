@@ -88,11 +88,12 @@ class BackgroundLocationService : Service() {
         try {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 // Determine the provider based on desired accuracy
-                val provider = if (desiredAccuracy == "HIGH") {
-                    LocationManager.GPS_PROVIDER // Use GPS for high accuracy
-                } else {
-                    LocationManager.NETWORK_PROVIDER // Use Wi-Fi for low accuracy
+                val provider = when (desiredAccuracy) {
+                    "HIGH" -> LocationManager.GPS_PROVIDER // High accuracy, uses GPS
+                    "MEDIUM" -> LocationManager.PASSIVE_PROVIDER // Medium accuracy, passive provider to balance
+                    else -> LocationManager.NETWORK_PROVIDER // Low accuracy, uses network (Wi-Fi, cell towers)
                 }
+                
                 mLocationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
                     LOCATION_UPDATE_INTERVAL.toLong(),
