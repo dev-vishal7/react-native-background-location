@@ -13,7 +13,7 @@ export default function App() {
     saveConfiguration({
       desiredAccuracy: 'HIGH',
       distanceFilter: 99,
-      stopTimeout: 5,
+      stopTimeout: 1,
       stopOnTerminate: false,
       startOnBoot: false,
       notificationTitle: 'This is custom title',
