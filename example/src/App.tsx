@@ -14,8 +14,8 @@ export default function App() {
       desiredAccuracy: 'HIGH',
       distanceFilter: 99,
       stopTimeout: 5,
-      stopOnTerminate: true,
-      startOnBoot: true,
+      stopOnTerminate: false,
+      startOnBoot: false,
       notificationTitle: 'App is running on background',
       notificationDescription: 'Tracking your location',
     })
