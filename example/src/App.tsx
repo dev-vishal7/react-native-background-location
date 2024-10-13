@@ -10,15 +10,16 @@ export default function App() {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
-    saveConfiguration({
-      desiredAccuracy: 100,
-      distanceFilter: 99999,
-      stopTimeout: 5,
-      stopOnTerminate: true,
-      startOnBoot: false,
-      notificationTitle: 'App is running00000',
-      notificationDescription: 'Tracking your location',
-    })
+    // {
+    //   desiredAccuracy: 'HIGH',
+    //   distanceFilter: 99,
+    //   stopTimeout: 5,
+    //   stopOnTerminate: false,
+    //   startOnBoot: false,
+    //   notificationTitle: 'App is running on background',
+    //   notificationDescription: 'Tracking your location',
+    // }
+    saveConfiguration({})
       .then((res) => {
         console.log('res----', res);
       })
@@ -39,7 +40,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <View style={{ alignItems: 'center' }}>
-        <Text>Click to enable Background Geolocation</Text>
+        <Text>Click to enable Background location</Text>
         <Switch value={enabled} onValueChange={setEnabled} />
       </View>
     </View>

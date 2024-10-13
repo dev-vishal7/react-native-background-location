@@ -29,8 +29,8 @@ class ConfigurationService(context: Context) {
     fun getConfig(): Map<String, Any> {
         val config = mutableMapOf<String, Any>()
     
-        config["desiredAccuracy"] = prefs.getInt("desiredAccuracy", 100) 
-        config["distanceFilter"] = prefs.getInt("distanceFilter", 10) 
+        config["desiredAccuracy"] = prefs.getString("desiredAccuracy", "LOW") ?: "LOW" // Provide a default if null
+        config["distanceFilter"] = prefs.getInt("distanceFilter", 50) 
         config["stopTimeout"] = prefs.getInt("stopTimeout", 5)
         config["stopOnTerminate"] = prefs.getBoolean("stopOnTerminate", true)
         config["startOnBoot"] = prefs.getBoolean("startOnBoot", false)
@@ -39,5 +39,4 @@ class ConfigurationService(context: Context) {
     
         return config 
     }
-    
 }
