@@ -3,6 +3,7 @@ package com.backgroundlocation
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -10,9 +11,17 @@ import android.os.*
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import android.content.pm.PackageManager
-import com.facebook.react.bridge.ReadableMap 
-import com.backgroundlocation.ConfigurationService
+import com.google.android.gms.location.ActivityRecognitionClient
+import com.google.android.gms.location.ActivityRecognitionResult
+import com.google.android.gms.location.DetectedActivity
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.OnFailureListener
+import com.facebook.react.bridge.ReadableMap
+import android.Manifest
+import com.google.android.gms.location.ActivityRecognition
+
 
 class BackgroundLocationService : Service() {
 
@@ -23,7 +32,7 @@ class BackgroundLocationService : Service() {
     private lateinit var mLocationManager: LocationManager
     private lateinit var wakeLock: PowerManager.WakeLock
     private lateinit var configService: ConfigurationService
-    private var distanceFilter: Float = 50f 
+    private var distanceFilter: Float = 50f
     private var desiredAccuracy: String = "LOW"
     private var notificationTitle: String = "App is running"
     private var notificationDescription: String = "Tracking your location"
@@ -32,6 +41,7 @@ class BackgroundLocationService : Service() {
     private var startOnBoot: Boolean = false
     private var stopHandler: Handler? = null
     private var stopRunnable: Runnable? = null
+    private lateinit var activityRecognitionClient: ActivityRecognitionClient
 
     override fun onCreate() {
         super.onCreate()
@@ -48,6 +58,8 @@ class BackgroundLocationService : Service() {
             is Double -> value.toFloat() // Convert Double to Float
             else -> 50f // Default value
         }
+        activityRecognitionClient = ActivityRecognition.getClient(this)
+
         desiredAccuracy = configMap["desiredAccuracy"] as? String ?: "LOW"
         notificationTitle = configMap["notificationTitle"] as? String ?: ""
         notificationDescription = configMap["notificationDescription"] as? String ?: ""
@@ -64,6 +76,7 @@ class BackgroundLocationService : Service() {
 
             createNotification()
             startLocationUpdates()
+            requestActivityUpdates()
 
             initializeStopTimeout(stopTimeout)
         } else {
@@ -120,6 +133,25 @@ class BackgroundLocationService : Service() {
         }
     }
 
+    private fun requestActivityUpdates() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
+            val intent = Intent(this, ActivityRecognitionReceiver::class.java)
+            val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+    
+            activityRecognitionClient.requestActivityUpdates(
+                500, 
+                pendingIntent
+            ).addOnSuccessListener {
+                Log.d(TAG, "Successfully requested activity updates")
+            }.addOnFailureListener { e ->
+                Log.e(TAG, "Failed to request activity updates: ${e.message}")
+            }
+        } else {
+            Log.e(TAG, "Activity recognition permission not granted")
+        }
+    }
+    
+
     private val mLocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             Log.d(TAG, "GPS Location updated: ${location.latitude}, ${location.longitude}")
@@ -157,7 +189,6 @@ class BackgroundLocationService : Service() {
             stopSelf()
         }
     }
-
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return START_STICKY
