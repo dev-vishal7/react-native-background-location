@@ -23,16 +23,23 @@ class BackgroundLocationService : Service() {
     private lateinit var mLocationManager: LocationManager
     private lateinit var wakeLock: PowerManager.WakeLock
     private lateinit var configService: ConfigurationService
-    private var distanceFilter: Float = 50f // default value for distance filter in meters
-    private var desiredAccuracy: String = "LOW" // default value for desired accuracy
+    private var distanceFilter: Float = 50f 
+    private var desiredAccuracy: String = "LOW"
+    private var notificationTitle: String = "App is running"
+    private var notificationDescription: String = "Tracking your location"
+    private var stopTimeout: Int = 5
+    private var stopOnTerminate: Boolean = false
+    private var startOnBoot: Boolean = false
+    private var stopHandler: Handler? = null
+    private var stopRunnable: Runnable? = null
 
     override fun onCreate() {
         super.onCreate()
 
         mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        configService = ConfigurationService(this) 
+        configService = ConfigurationService(this)
         val config = configService.getConfig()
-        
+
         val configMap = config.toMap()
         Log.d(TAG, "Config Map: $configMap")
 
@@ -41,18 +48,24 @@ class BackgroundLocationService : Service() {
             is Double -> value.toFloat() // Convert Double to Float
             else -> 50f // Default value
         }
-
         desiredAccuracy = configMap["desiredAccuracy"] as? String ?: "LOW"
-        
+        notificationTitle = configMap["notificationTitle"] as? String ?: ""
+        notificationDescription = configMap["notificationDescription"] as? String ?: ""
+        stopTimeout = configMap["stopTimeout"] as? Int ?: 5
+        stopOnTerminate = configMap["stopOnTerminate"] as? Boolean ?: false
+        startOnBoot = configMap["startOnBoot"] as? Boolean ?: false
+
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BackgroundLocationService::WakeLock")
         wakeLock.acquire(60 * 1000L)
-        
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(this, android.Manifest.permission.FOREGROUND_SERVICE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                
+
             createNotification()
             startLocationUpdates()
+
+            initializeStopTimeout(stopTimeout)
         } else {
             Log.e(TAG, "Required permissions not granted")
         }
@@ -73,8 +86,8 @@ class BackgroundLocationService : Service() {
         )
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("App is running")
-            .setContentText("Tap for more information or to stop the app.")
+            .setContentTitle(notificationTitle)
+            .setContentText(notificationDescription)
             .setContentIntent(pendingIntent)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -87,17 +100,16 @@ class BackgroundLocationService : Service() {
     private fun startLocationUpdates() {
         try {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                // Determine the provider based on desired accuracy
                 val provider = when (desiredAccuracy) {
-                    "HIGH" -> LocationManager.GPS_PROVIDER // High accuracy, uses GPS
-                    "MEDIUM" -> LocationManager.PASSIVE_PROVIDER // Medium accuracy, passive provider to balance
-                    else -> LocationManager.NETWORK_PROVIDER // Low accuracy, uses network (Wi-Fi, cell towers)
+                    "HIGH" -> LocationManager.GPS_PROVIDER
+                    "MEDIUM" -> LocationManager.PASSIVE_PROVIDER
+                    else -> LocationManager.NETWORK_PROVIDER
                 }
-                
+
                 mLocationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
+                    provider,
                     LOCATION_UPDATE_INTERVAL.toLong(),
-                    distanceFilter, // The minimum distance (in meters) for location updates
+                    distanceFilter,
                     mLocationListener
                 )
             } else {
@@ -111,7 +123,7 @@ class BackgroundLocationService : Service() {
     private val mLocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             Log.d(TAG, "GPS Location updated: ${location.latitude}, ${location.longitude}")
-            // Process location update
+            resetStopTimeout()
         }
 
         override fun onProviderDisabled(provider: String) {
@@ -122,10 +134,30 @@ class BackgroundLocationService : Service() {
             Log.d(TAG, "Location provider enabled: $provider")
         }
 
-        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-            // Handle status changes if needed
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+    }
+
+    private fun initializeStopTimeout(timeout: Int) {
+        stopHandler = Handler(Looper.getMainLooper())
+        stopRunnable = Runnable {
+            stopSelf() // Stop the service after the timeout
+            Log.d(TAG, "Service stopped due to stopTimeout")
+        }
+        stopHandler?.postDelayed(stopRunnable!!, timeout * 60 * 1000L) // Timeout in minutes
+    }
+
+    private fun resetStopTimeout() {
+        stopHandler?.removeCallbacks(stopRunnable!!)
+        stopHandler?.postDelayed(stopRunnable!!, stopTimeout * 60 * 1000L)
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        if (stopOnTerminate) {
+            stopSelf()
         }
     }
+
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return START_STICKY
@@ -138,6 +170,7 @@ class BackgroundLocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         mLocationManager.removeUpdates(mLocationListener)
+        stopHandler?.removeCallbacks(stopRunnable!!)
         if (this::wakeLock.isInitialized && wakeLock.isHeld) {
             wakeLock.release()
         }
