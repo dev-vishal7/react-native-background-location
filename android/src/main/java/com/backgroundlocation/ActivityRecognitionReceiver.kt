@@ -11,6 +11,7 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
 
     private val TAG = "ActivityRecognitionReceiver"
     private var isMoving = false
+    private var lastActivityType: String? = null // Store the last detected activity type
 
     override fun onReceive(context: Context, intent: Intent) {
         val result = ActivityRecognitionResult.extractResult(intent)
@@ -20,7 +21,7 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
             for (activity in activities) {
                 val activityType = getActivityString(activity.type)
                 val confidence = activity.confidence
-                    
+                
                 // Ensure a threshold confidence
                 if (confidence > 50) {
                     val isStationary = activity.type == DetectedActivity.STILL
@@ -28,7 +29,15 @@ class ActivityRecognitionReceiver : BroadcastReceiver() {
                                             activity.type == DetectedActivity.RUNNING || 
                                             activity.type == DetectedActivity.IN_VEHICLE || 
                                             activity.type == DetectedActivity.ON_BICYCLE
-                    sendActivityChangeBroadcast(context, activityType)
+
+                    // Check if the activity has changed from the last detected activity
+                    if (activityType != lastActivityType) {
+                        lastActivityType = activityType // Update the last activity type
+                        sendActivityChangeBroadcast(context, activityType)
+                        Log.d(TAG, "Activity changed: $activityType")
+                    }
+
+                    // Handle motion change
                     if (isMoving && isStationary) {
                         isMoving = false
                         Log.d(TAG, "Motion changed: Now stationary")
