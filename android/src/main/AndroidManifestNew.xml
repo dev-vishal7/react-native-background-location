@@ -25,10 +25,10 @@
                 </intent-filter>
 
             </receiver>
-<receiver android:name=".ActivityRecognitionReceiver" android:exported="true">
-    <intent-filter>
-        <action android:name="com.backgroundlocation.ACTIVITY_CHANGE" />
-    </intent-filter>
-</receiver>
+        <receiver android:name=".ActivityRecognitionReceiver" android:exported="true">
+           <intent-filter>
+            <action android:name="com.backgroundlocation.ACTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
         </application>
 </manifest>

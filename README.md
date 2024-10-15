@@ -35,7 +35,6 @@ In your `AndroidManifest.xml`, add the following permissions:
 ```xml
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
 ```
 
 ### iOS (Planned for Future Implementation)
@@ -148,15 +147,15 @@ const styles = StyleSheet.create({
 
 Configures the background location settings.
 
-| Option                    | Type    | Description                                                            |
-| ------------------------- | ------- | ---------------------------------------------------------------------- |
-| `desiredAccuracy`         | String  | Specifies the desired accuracy level (e.g., 'HIGH')                    |
-| `distanceFilter`          | Number  | Minimum distance (in meters) to trigger a location update              |
-| `stopTimeout`             | Number  | Time (in minutes) after which tracking will stop if stationary         |
-| `stopOnTerminate`         | Boolean | Whether to stop location tracking when the app is terminated           |
-| `startOnBoot`             | Boolean | Whether to automatically start location tracking when the device boots |
-| `notificationTitle`       | String  | The title of the notification when location tracking is running        |
-| `notificationDescription` | String  | The description of the notification when location tracking is running  |
+| Option                    | Type    | Description                                                            | Default Value            |
+| ------------------------- | ------- | ---------------------------------------------------------------------- | ------------------------ |
+| `desiredAccuracy`         | String  | Specifies the desired accuracy level. Options: 'HIGH', 'MEDIUM', 'LOW' | 'LOW'                    |
+| `distanceFilter`          | Number  | Minimum distance (in meters) to trigger a location update              | 50                       |
+| `stopTimeout`             | Number  | Time (in minutes) after which tracking will stop if stationary         | 5                        |
+| `stopOnTerminate`         | Boolean | Whether to stop location tracking when the app is terminated           | true                     |
+| `startOnBoot`             | Boolean | Whether to automatically start location tracking when the device boots | false                    |
+| `notificationTitle`       | String  | The title of the notification when location tracking is running        | 'App is running'         |
+| `notificationDescription` | String  | The description of the notification when location tracking is running  | 'Tracking your location' |
 
 ### `BackgroundLocation.onLocation(callback)`
 
