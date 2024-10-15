@@ -14,13 +14,7 @@ export default function App() {
       startOnBoot: false,
       notificationTitle: 'This is custom title',
       notificationDescription: 'custom description for',
-    })
-      .then((res) => {
-        console.log('res----', res);
-      })
-      .catch((err) => {
-        console.log('err', err);
-      });
+    });
 
     // Subscribe to location change events
     const locationSubscription = BackgroundLocation.onLocation((data) => {
