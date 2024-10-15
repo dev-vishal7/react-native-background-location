@@ -10,7 +10,6 @@ npm install react-native-background-location
 
 ## Usage
 
-
 ```js
 import { multiply } from 'react-native-background-location';
 
@@ -18,7 +17,6 @@ import { multiply } from 'react-native-background-location';
 
 const result = await multiply(3, 7);
 ```
-
 
 ## Contributing
 
