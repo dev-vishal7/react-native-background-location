@@ -10,32 +10,51 @@ import com.google.android.gms.location.DetectedActivity
 class ActivityRecognitionReceiver : BroadcastReceiver() {
 
     private val TAG = "ActivityRecognitionReceiver"
+    private var isMoving = false
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "onReceive called") // Log to check if the receiver is triggered
         val result = ActivityRecognitionResult.extractResult(intent)
         
-        // Check if the result is not null
         if (result != null) {
             val activities = result.probableActivities
             for (activity in activities) {
                 val activityType = getActivityString(activity.type)
                 val confidence = activity.confidence
-                
-                // Log the confidence of the detected activity
-                Log.d(TAG, "Detected activity: $activityType with confidence: $confidence")
-
-                // You can set a threshold for confidence before broadcasting
-                if (confidence > 50) {  // Example threshold
-                    val activityIntent = Intent("com.backgroundlocation.ACTIVITY_CHANGE")
-                    activityIntent.putExtra("activity", activityType)
-                    activityIntent.putExtra("confidence", confidence)
-                    context.sendBroadcast(activityIntent)
+                    
+                // Ensure a threshold confidence
+                if (confidence > 50) {
+                    val isStationary = activity.type == DetectedActivity.STILL
+                    val isCurrentlyMoving = activity.type == DetectedActivity.WALKING || 
+                                            activity.type == DetectedActivity.RUNNING || 
+                                            activity.type == DetectedActivity.IN_VEHICLE || 
+                                            activity.type == DetectedActivity.ON_BICYCLE
+                    sendActivityChangeBroadcast(context, activityType)
+                    if (isMoving && isStationary) {
+                        isMoving = false
+                        Log.d(TAG, "Motion changed: Now stationary")
+                        sendMotionChangeBroadcast(context, "stationary")
+                    } else if (!isMoving && isCurrentlyMoving) {
+                        isMoving = true
+                        Log.d(TAG, "Motion changed: Now moving")
+                        sendMotionChangeBroadcast(context, "moving")
+                    }
                 }
             }
         } else {
             Log.w(TAG, "No activity recognition result found.")
         }
+    }
+
+    private fun sendMotionChangeBroadcast(context: Context, motionState: String) {
+        val motionIntent = Intent("com.backgroundlocation.MOTION_CHANGE")
+        motionIntent.putExtra("motionState", motionState)
+        context.sendBroadcast(motionIntent)
+    }
+
+    private fun sendActivityChangeBroadcast(context: Context, activity: String) {
+        val activityIntent = Intent("com.backgroundlocation.ACTIVITY_CHANGE")
+        activityIntent.putExtra("activity", activity)
+        context.sendBroadcast(activityIntent)
     }
 
     private fun getActivityString(activityType: Int): String {

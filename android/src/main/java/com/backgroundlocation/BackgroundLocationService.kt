@@ -156,15 +156,25 @@ class BackgroundLocationService : Service() {
         override fun onLocationChanged(location: Location) {
             Log.d(TAG, "GPS Location updated: ${location.latitude}, ${location.longitude}")
             resetStopTimeout()
-        }
-
-        override fun onProviderDisabled(provider: String) {
-            Log.d(TAG, "Location provider disabled: $provider")
+            val intent = Intent("com.backgroundlocation.LOCATION_CHANGE")
+            intent.putExtra("location", location)  // Use putParcelable for Location object
+            applicationContext.sendBroadcast(intent)            
         }
 
         override fun onProviderEnabled(provider: String) {
-            Log.d(TAG, "Location provider enabled: $provider")
+            sendProviderChangeBroadcast("enabled", provider)
         }
+        
+        override fun onProviderDisabled(provider: String) {
+            sendProviderChangeBroadcast("disabled", provider)
+        }
+        
+        private fun sendProviderChangeBroadcast(status: String, provider: String) {
+            val intent = Intent("com.backgroundlocation.PROVIDER_CHANGE")
+            intent.putExtra("status", status)
+            applicationContext.sendBroadcast(intent)
+        }
+        
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
     }
