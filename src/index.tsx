@@ -1,4 +1,5 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, DeviceEventEmitter, Platform } from 'react-native';
+import type { EmitterSubscription } from 'react-native';
 
 const LINKING_ERROR =
   `The package 'react-native-background-location' doesn't seem to be linked. Make sure: \n\n` +
@@ -6,7 +7,7 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const BackgroundLocation = NativeModules.BackgroundLocation
+const BackgroundLocationNative = NativeModules.BackgroundLocation
   ? NativeModules.BackgroundLocation
   : new Proxy(
       {},
@@ -17,17 +18,55 @@ const BackgroundLocation = NativeModules.BackgroundLocation
       }
     );
 
-export function saveConfiguration(config: Object): Promise<string> {
-  return BackgroundLocation.saveConfiguration(config);
-}
-export function getConfiguration(config: Object): Promise<string> {
-  return BackgroundLocation.getConfiguration(config);
-}
+// Create an object that mimics a class-like API
+const BackgroundLocation = {
+  // Methods to save and get configuration
+  configure(config: Object): Promise<string> {
+    return BackgroundLocationNative.saveConfiguration(config);
+  },
 
-export function startBackgroundLocation(): Promise<string> {
-  return BackgroundLocation.startBackgroundService();
-}
+  getConfiguration(): Promise<string> {
+    return BackgroundLocationNative.getConfiguration();
+  },
 
-export function stopBackgroundLocation(): Promise<string> {
-  return BackgroundLocation.stopBackgroundService();
-}
+  // Start the background location service and listen for location events
+  start(): Promise<string> {
+    BackgroundLocationNative.startListeningLocationChangeEvent();
+    BackgroundLocationNative.startListeningProvideChangeEvent();
+    BackgroundLocationNative.startListeningActivityChangeEvent();
+    BackgroundLocationNative.startListeningMotionChangeEvent();
+    return BackgroundLocationNative.startBackgroundService();
+  },
+
+  // Stop the background location service
+  stop(): Promise<string> {
+    return BackgroundLocationNative.stopBackgroundService();
+  },
+
+  // Event subscription methods
+  onLocation(callback: (data: any) => void): EmitterSubscription {
+    return DeviceEventEmitter.addListener('onLocationChange', callback);
+  },
+
+  onProviderChange(callback: (data: any) => void): EmitterSubscription {
+    return DeviceEventEmitter.addListener('onProviderChange', callback);
+  },
+
+  onActivityChange(callback: (data: any) => void): EmitterSubscription {
+    return DeviceEventEmitter.addListener('onActivityChange', callback);
+  },
+
+  onMotionChange(callback: (data: any) => void): EmitterSubscription {
+    return DeviceEventEmitter.addListener('onMotionChange', callback);
+  },
+
+  // Optional: Call this to remove all listeners
+  removeAllListeners(): void {
+    DeviceEventEmitter.removeAllListeners('onLocationChange');
+    DeviceEventEmitter.removeAllListeners('onProviderChange');
+    DeviceEventEmitter.removeAllListeners('onActivityChange');
+    DeviceEventEmitter.removeAllListeners('onMotionChange');
+  },
+};
+
+export default BackgroundLocation;
