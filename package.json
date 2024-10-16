@@ -1,6 +1,6 @@
 {
   "name": "react-native-geo-locator",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "react-native-geo-locator is a powerful, lightweight, and customizable library for tracking user location in the background in React Native applications. It provides real-time geolocation updates even when the app is running in the background, making it ideal for location-based services such as delivery apps, fitness trackers, or ride-sharing platforms.",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",

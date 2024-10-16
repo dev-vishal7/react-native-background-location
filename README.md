@@ -1,36 +1,33 @@
-# react-native-geo-locator
+# 🌍 react-native-geo-locator
 
-`react-native-geo-locator` is a powerful and customizable library for tracking user location in the background in React Native applications. It enables real-time geolocation updates even when the app is running in the background. This library is suitable for a variety of location-based services such as delivery apps, fitness trackers, ride-sharing platforms, and more.
+[![npm version](https://img.shields.io/npm/v/react-native-geo-locator.svg)](https://www.npmjs.com/package/react-native-geo-locator)
+[![license](https://img.shields.io/github/license/yourusername/react-native-geo-locator.svg)](https://github.com/yourusername/react-native-geo-locator/blob/main/LICENSE)
 
-## Features
+`react-native-geo-locator` is a powerful, lightweight, and customizable library for tracking user location in the background in React Native applications. It enables real-time geolocation updates even when the app is running in the background, making it perfect for a variety of location-based services.
 
-- Track user location in the background
-- Detect motion and activity changes
-- Listen to changes in location provider (e.g., GPS, network)
-- Highly configurable with options for desired accuracy, distance filtering, and more
-- Android support only (iOS support will be added in future updates)
+## 🚀 Features
 
-## Installation
+- 📍 Track user location in the background
+- 🏃‍♂️ Detect motion and activity changes
+- 🔄 Listen to changes in location provider (e.g., GPS, network)
+- ⚙️ Highly configurable with options for desired accuracy, distance filtering, and more
+- 🔋 Battery-optimized for efficient power consumption
+- 🪶 Lightweight implementation for minimal app size impact
+- 🤖 Android support (iOS support coming soon!)
 
-Install the package using npm:
+## 📦 Installation
 
 ```bash
 npm install react-native-geo-locator
-```
-
-Or using yarn:
-
-```bash
+# or
 yarn add react-native-geo-locator
 ```
 
-## Permissions
-
-To enable background location tracking, you need to add the required permissions.
+## 🛠 Setup
 
 ### Android
 
-In your `AndroidManifest.xml`, add the following permissions:
+Add the following permissions to your `AndroidManifest.xml`:
 
 ```xml
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -38,162 +35,118 @@ In your `AndroidManifest.xml`, add the following permissions:
 <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 ```
 
-### iOS (Planned for Future Implementation)
+### iOS (Coming Soon)
 
-Currently, iOS support is not available. In future updates, you will need to configure the following permissions in your `Info.plist` file once iOS support is released:
+iOS support is planned for future updates. Stay tuned!
 
-```xml
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>We need access to your location to show your current position.</string>
-<key>NSLocationAlwaysUsageDescription</key>
-<string>We need access to your location even when the app is in the background.</string>
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>We need access to your location to track your movements in the background.</string>
-<key>UIBackgroundModes</key>
-<array>
-    <string>location</string>
-</array>
-```
+## 🔧 Usage
 
-## Usage Example
-
-Here's a basic example of how to configure and start background location tracking in your app:
+Here's a quick example to get you started:
 
 ```jsx
-import { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Switch } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Switch } from 'react-native';
 import BackgroundLocation from 'react-native-geo-locator';
 
 export default function App() {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
-    // Configure background location tracking options
     BackgroundLocation.configure({
       desiredAccuracy: 'HIGH',
       distanceFilter: 100,
-      stopTimeout: 10,
-      stopOnTerminate: false,
-      startOnBoot: false,
       notificationTitle: 'Location Tracking',
       notificationDescription: 'Your location is being tracked.',
     });
 
-    // Subscribe to location change events
     const locationSubscription = BackgroundLocation.onLocation((data) => {
       console.log('Location changed:', data);
     });
 
-    // Subscribe to motion change events
-    const onMotionChangeSubscription = BackgroundLocation.onMotionChange(
-      (data) => {
-        console.log('Motion changed:', data);
-      }
-    );
-
-    // Subscribe to activity change events (e.g., walking, running)
-    const activityChangeSubscription = BackgroundLocation.onActivityChange(
-      (data) => {
-        console.log('Activity changed:', data);
-      }
-    );
-
-    // Subscribe to provider change events (e.g., GPS turned off)
-    const providerSubscription = BackgroundLocation.onProviderChange((data) => {
-      console.log('Provider changed:', data);
-    });
-
-    // Start or stop background location tracking based on the toggle switch
     if (enabled) {
-      BackgroundLocation.start().then((res) =>
-        console.log('Background location started', res)
-      );
+      BackgroundLocation.start();
     } else {
-      BackgroundLocation.stop().then(() =>
-        console.log('Background location stopped')
-      );
+      BackgroundLocation.stop();
     }
 
-    // Clean up subscriptions on unmount
-    return () => {
-      locationSubscription.remove();
-      onMotionChangeSubscription.remove();
-      activityChangeSubscription.remove();
-      providerSubscription.remove();
-    };
+    return () => locationSubscription.remove();
   }, [enabled]);
 
   return (
-    <View style={styles.container}>
-      <View style={{ alignItems: 'center' }}>
-        <Text>Click to enable Background location</Text>
-        <Switch value={enabled} onValueChange={setEnabled} />
-      </View>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Enable Background Location</Text>
+      <Switch value={enabled} onValueChange={setEnabled} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 ```
 
-## API Reference
+## 📚 API Reference
 
 ### `BackgroundLocation.configure(options)`
 
 Configures the background location settings.
 
-| Option                    | Type    | Description                                                            | Default Value            |
-| ------------------------- | ------- | ---------------------------------------------------------------------- | ------------------------ |
-| `desiredAccuracy`         | String  | Specifies the desired accuracy level. Options: 'HIGH', 'MEDIUM', 'LOW' | 'LOW'                    |
-| `distanceFilter`          | Number  | Minimum distance (in meters) to trigger a location update              | 50                       |
-| `stopTimeout`             | Number  | Time (in minutes) after which tracking will stop if stationary         | 5                        |
-| `stopOnTerminate`         | Boolean | Whether to stop location tracking when the app is terminated           | true                     |
-| `startOnBoot`             | Boolean | Whether to automatically start location tracking when the device boots | false                    |
-| `notificationTitle`       | String  | The title of the notification when location tracking is running        | 'App is running'         |
-| `notificationDescription` | String  | The description of the notification when location tracking is running  | 'Tracking your location' |
+| Option                    | Type    | Description                             | Default                  |
+| ------------------------- | ------- | --------------------------------------- | ------------------------ |
+| `desiredAccuracy`         | String  | Accuracy level: 'HIGH', 'MEDIUM', 'LOW' | 'LOW'                    |
+| `distanceFilter`          | Number  | Minimum distance (meters) for updates   | 50                       |
+| `stopTimeout`             | Number  | Time (minutes) to stop if stationary    | 5                        |
+| `stopOnTerminate`         | Boolean | Stop tracking on app termination        | true                     |
+| `startOnBoot`             | Boolean | Start tracking on device boot           | false                    |
+| `notificationTitle`       | String  | Notification title                      | 'App is running'         |
+| `notificationDescription` | String  | Notification description                | 'Tracking your location' |
 
-### `BackgroundLocation.onLocation(callback)`
+### Event Listeners
 
-Subscribes to location change events. The callback function will be called whenever a location update occurs.
+- `BackgroundLocation.onLocation(callback)`
+- `BackgroundLocation.onMotionChange(callback)`
+- `BackgroundLocation.onActivityChange(callback)`
+- `BackgroundLocation.onProviderChange(callback)`
 
-### `BackgroundLocation.onMotionChange(callback)`
+### Control Methods
 
-Subscribes to motion change events. The callback function will be called when the user's motion state changes (e.g., from stationary to moving).
+- `BackgroundLocation.start()`
+- `BackgroundLocation.stop()`
 
-### `BackgroundLocation.onActivityChange(callback)`
+## 🔋 Battery Optimization
 
-Subscribes to activity change events. The callback function will be called when the user's detected activity changes (e.g., walking, running).
+`react-native-geo-locator` is designed with battery efficiency in mind. It uses intelligent algorithms to minimize battery drain while still providing accurate location updates. The library:
 
-### `BackgroundLocation.onProviderChange(callback)`
+- Adapts tracking frequency based on movement detection
+- Uses low-power location providers when high accuracy is not required
+- Implements efficient background processing to reduce CPU usage
 
-Subscribes to provider change events. The callback function will be called when the device's location provider (e.g., GPS) changes its state.
+## 🪶 Lightweight Implementation
 
-### `BackgroundLocation.start()`
+Despite its powerful features, `react-native-geo-locator` maintains a small footprint:
 
-Starts background location tracking.
+- Minimal impact on app size
+- Efficient memory usage
+- Quick initialization and low overhead
 
-### `BackgroundLocation.stop()`
+These characteristics make it an excellent choice for developers who need robust location tracking without sacrificing app performance.
 
-Stops background location tracking.
+## 🔜 Roadmap
 
-## iOS Support
+- [ ] iOS support
+- [ ] Geofencing capabilities
+- [ ] Enhanced battery optimization strategies
+- [ ] More customizable notification options
 
-Currently, iOS support is not available but will be implemented in future updates. Please stay tuned for updates regarding iOS support.
+## 🤝 Contributing
 
-## Contributing
+We welcome contributions! Please check out our [contributing guide](CONTRIBUTING.md) to learn more about how to get involved.
 
-We welcome contributions! Please check out our contributing guide to learn more about how to get involved.
+## 📄 License
 
-## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-MIT License
+## 🙏 Acknowledgements
+
+- [create-react-native-library](https://github.com/callstack/react-native-builder-bob) for the initial setup
+- All our contributors and users!
 
 ---
 
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+Made with ❤️ by vishal
