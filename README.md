@@ -1,6 +1,6 @@
-# react-native-background-location
+# react-native-geo-locator
 
-`react-native-background-location` is a powerful and customizable library for tracking user location in the background in React Native applications. It enables real-time geolocation updates even when the app is running in the background. This library is suitable for a variety of location-based services such as delivery apps, fitness trackers, ride-sharing platforms, and more.
+`react-native-geo-locator` is a powerful and customizable library for tracking user location in the background in React Native applications. It enables real-time geolocation updates even when the app is running in the background. This library is suitable for a variety of location-based services such as delivery apps, fitness trackers, ride-sharing platforms, and more.
 
 ## Features
 
@@ -15,13 +15,13 @@
 Install the package using npm:
 
 ```bash
-npm install react-native-background-location
+npm install react-native-geo-locator
 ```
 
 Or using yarn:
 
 ```bash
-yarn add react-native-background-location
+yarn add react-native-geo-locator
 ```
 
 ## Permissions
@@ -35,6 +35,7 @@ In your `AndroidManifest.xml`, add the following permissions:
 ```xml
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 ```
 
 ### iOS (Planned for Future Implementation)
@@ -61,7 +62,7 @@ Here's a basic example of how to configure and start background location trackin
 ```jsx
 import { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Switch } from 'react-native';
-import BackgroundLocation from 'react-native-background-location';
+import BackgroundLocation from 'react-native-geo-locator';
 
 export default function App() {
   const [enabled, setEnabled] = useState(false);
@@ -70,7 +71,7 @@ export default function App() {
     // Configure background location tracking options
     BackgroundLocation.configure({
       desiredAccuracy: 'HIGH',
-      distanceFilter: 99,
+      distanceFilter: 100,
       stopTimeout: 10,
       stopOnTerminate: false,
       startOnBoot: false,
